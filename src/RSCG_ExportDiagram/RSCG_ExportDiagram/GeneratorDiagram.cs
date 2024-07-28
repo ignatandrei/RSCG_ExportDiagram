@@ -95,7 +95,15 @@ namespace RSCG_ExportDiagram
 
             foreach (var descendantNode in methodBody.DescendantNodes())
             {
-                var symbolInfo = semanticModel.GetSymbolInfo(descendantNode);
+                SymbolInfo symbolInfo;
+                try
+                {
+                    symbolInfo = semanticModel.GetSymbolInfo(descendantNode);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
                 var referencedSymbol = symbolInfo.Symbol;
                 if (referencedSymbol == null)
                     continue;
