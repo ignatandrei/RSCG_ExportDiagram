@@ -189,7 +189,7 @@ namespace RSCG_ExportDiagram
                     foreach (var item in externalReferencesTypes)
                     {
                         nr++;
-                        GenerateText generateText = new(item);
+                        GenerateText generateText = new(item,nr);
                         var name = item.classType.ContainingAssembly.Name + "." + item.classType.Name;
                         name=name.Replace(".", "_")+"_"+nr;
                         var text = generateText.GenerateClass();
