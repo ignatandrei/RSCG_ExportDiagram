@@ -39,6 +39,10 @@ internal class ExternalReferencesForMethod
         ext =ext.GroupBy(x=>x,SymbolEqualityComparer.Default).Select(x=>x.First()).ToArray();
         this.externalReferences = ext.Select(it=>new ExternalReference(it)).ToArray();
     }
+    public bool ShouldEliminate()
+    {
+        return externalReferences.Length == 0;
+    }
     
 }
 
@@ -65,7 +69,11 @@ internal class GenerateText
     public string GenerateClass()
     {
         var methods = "";
-        foreach (var externalReferencesMethod in externalReferencesType.externalReferencesMethod)
+        var methodsToWrite=
+            externalReferencesType.externalReferencesMethod
+            .Where(x=>!x.ShouldEliminate())
+            .ToArray();
+        foreach (var externalReferencesMethod in methodsToWrite)
         {
             var method = $@"
 // Method {externalReferencesMethod.methodType.Name} has following external references

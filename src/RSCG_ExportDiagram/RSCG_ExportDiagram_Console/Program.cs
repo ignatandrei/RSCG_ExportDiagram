@@ -10,6 +10,10 @@ public partial class Program
         p.LastName = "Ignat";
 
         Console.WriteLine($"Hello, {p.FullName()}");
+        List<IPerson> list = new ();
+        list.Add(p);
+        p = list.First();
+
     }
 }
 
