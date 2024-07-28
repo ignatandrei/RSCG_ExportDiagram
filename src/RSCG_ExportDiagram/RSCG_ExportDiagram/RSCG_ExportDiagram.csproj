@@ -47,7 +47,7 @@
 	<PropertyGroup>
 		<PackAsTool>false</PackAsTool>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<Version>2024.728.1728</Version>
+		<Version>2024.728.1830</Version>
 		<Authors>Andrei Ignat</Authors>
 		<Description>Roslyn Diagram generator for external dependencies</Description>
 		<Title>RSCG Diagram</Title>

@@ -11,6 +11,10 @@
     "Console": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\RSCG_ExportDiagram_Console\\RSCG_ExportDiagram_Console.csproj"
+    },
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\..\\..\\CleanArchitecture\\src\\Infrastructure\\Infrastructure.csproj"
     }
   }
 }

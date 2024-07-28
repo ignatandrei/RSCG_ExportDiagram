@@ -185,11 +185,15 @@ namespace RSCG_ExportDiagram
                 }
                 if(externalReferencesTypes.Count > 0)
                 {
+                    var nr=0;
                     foreach (var item in externalReferencesTypes)
                     {
+                        nr++;
                         GenerateText generateText = new(item);
                         var name = item.classType.ContainingAssembly.Name + "." + item.classType.Name;
-                        context.AddSource($"{name}_gen.cs", generateText.GenerateClass());
+                        name=name.Replace(".", "_")+"_"+nr;
+                        var text = generateText.GenerateClass();
+                        context.AddSource($"{name}_gen.cs", text);
                     }
                 }
             });

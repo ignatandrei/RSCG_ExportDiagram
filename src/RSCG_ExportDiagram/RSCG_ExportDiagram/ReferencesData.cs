@@ -60,10 +60,12 @@ internal class ExternalReferencesType {
 internal class GenerateText
 {
     private readonly ExternalReferencesType externalReferencesType;
+    private readonly int nr;
 
-    public GenerateText(ExternalReferencesType externalReferencesType)
+    public GenerateText(ExternalReferencesType externalReferencesType, int nr)
     {
         this.externalReferencesType = externalReferencesType;
+        this.nr = nr;
     }
 
     public string GenerateClass()
@@ -83,7 +85,7 @@ internal class GenerateText
         }
 
         var str = $@"
-public class {externalReferencesType.classType.Name}_References
+public class {externalReferencesType.classType.Name}_References_{nr}
 {{
     public {externalReferencesType.classType.Name}_References()
 {{
