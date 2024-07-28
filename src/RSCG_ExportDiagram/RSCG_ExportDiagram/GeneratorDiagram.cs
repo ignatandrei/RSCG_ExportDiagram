@@ -130,9 +130,29 @@ namespace RSCG_ExportDiagram
         }
         public void Initialize(IncrementalGeneratorInitializationContext cnt)
         {
-            var assemblyNameProv = cnt.CompilationProvider
-            .Select((compilation, _) => compilation.AssemblyName);
 
+            var dataFromCsproj = cnt.AnalyzerConfigOptionsProvider.SelectMany(
+                (it, _) =>
+                {
+                    Dictionary<string,string> map = new ();
+                    
+                    if(it.GlobalOptions.TryGetValue("build_property.RSCG_ExportDiagram_OutputFolder", out var value))
+                    {
+                        map.Add("JSONFolder", value);
+                    }
+
+                    if (it.GlobalOptions.TryGetValue("build_property.projectDir", out var value1))
+                    {
+                        map.Add("projectDir", value1);
+                    }
+                    return map.ToArray();
+                    
+                }
+                ).Collect(); 
+            ;
+            var assemblyNameProv = cnt.CompilationProvider
+            .Select((compilation, _) => compilation.AssemblyName)
+            ;
             
             var classToImplementProv = 
                 cnt.SyntaxProvider.CreateSyntaxProvider(
@@ -141,10 +161,17 @@ namespace RSCG_ExportDiagram
                     (context.SemanticModel ,context.SemanticModel.GetDeclaredSymbol(context.Node)))
             .Collect();
 
-            var data = assemblyNameProv.Combine(classToImplementProv);
+            var data =
+                assemblyNameProv
+                .Combine(classToImplementProv)
+                .Combine(dataFromCsproj);
+                
+                ;
             cnt.RegisterSourceOutput(data, (context, AllData) =>
             {
-                var (assemblyName, classToImplement) = AllData;
+                var (compound, csprojDecl) = AllData;
+                var (assemblyName, classToImplement) = compound;
+                var additionalExport = csprojDecl.ToArray().Distinct().ToArray();
                 List<ExternalReferencesType> externalReferencesTypes = [];
                 foreach (var(sm, item) in classToImplement)
                 {
@@ -189,7 +216,7 @@ namespace RSCG_ExportDiagram
                     foreach (var item in externalReferencesTypes)
                     {
                         nr++;
-                        GenerateText generateText = new(item,nr);
+                        GenerateText generateText = new(item,nr, additionalExport);
                         var name = item.classType.ContainingAssembly.Name + "." + item.classType.Name;
                         name=name.Replace(".", "_")+"_"+nr;
                         var text = generateText.GenerateClass();

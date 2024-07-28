@@ -16,5 +16,10 @@
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GX</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
-
+	<ItemGroup>
+		<CompilerVisibleProperty Include="RSCG_ExportDiagram_OutputFolder" />
+	</ItemGroup>
+	<PropertyGroup>
+		<RSCG_ExportDiagram_OutputFolder>../</RSCG_ExportDiagram_OutputFolder>
+	</PropertyGroup>
 </Project>

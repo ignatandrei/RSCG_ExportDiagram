@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 namespace RSCG_ExportDiagram;
 internal class ExternalReference
@@ -61,12 +62,16 @@ internal class GenerateText
 {
     private readonly ExternalReferencesType externalReferencesType;
     private readonly int nr;
-
-    public GenerateText(ExternalReferencesType externalReferencesType, int nr)
+    private readonly KeyValuePair<string, string>[] csprojDecl;
+    
+    public GenerateText(ExternalReferencesType externalReferencesType, int nr, KeyValuePair<string, string>[] csprojDecl)
     {
         this.externalReferencesType = externalReferencesType;
         this.nr = nr;
+        this.csprojDecl = csprojDecl;
     }
+
+    
 
     public string GenerateClass()
     {
@@ -85,6 +90,7 @@ internal class GenerateText
         }
 
         var str = $@"
+//{string.Join("\r\n//", csprojDecl.Select(it=>$"{it.Key}={it.Value}"))}
 public class {externalReferencesType.classType.Name}_References_{nr}
 {{
     public {externalReferencesType.classType.Name}_References_{nr}()
