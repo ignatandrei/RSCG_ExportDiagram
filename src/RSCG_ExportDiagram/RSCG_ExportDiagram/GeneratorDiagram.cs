@@ -19,6 +19,7 @@ namespace RSCG_ExportDiagram
             {
                 if(methodSymbol.MethodKind == MethodKind.BuiltinOperator)
                     return true;
+                
             }
             var displa = typeSymbol.Name;
             if (displa.Contains("op_"))
@@ -154,6 +155,8 @@ namespace RSCG_ExportDiagram
                         }
                         else if (member is IMethodSymbol methodSymbol)
                         {
+                            if(methodSymbol.IsImplicitlyDeclared)
+                                continue;
                             var props = VerifyMethod(sm, currentAssembly, methodSymbol);
                             if (props?.Length > 0)
                             {
@@ -191,18 +194,18 @@ namespace RSCG_ExportDiagram
                 return [];
             if (methodSymbol.MethodKind == MethodKind.PropertySet)
                 return [];
-
+            List<ISymbol> ret = new();
             var interfaceMethod = IsImplementationOfInterfaceMethod(methodSymbol);
             if (interfaceMethod != null)
             {
                 if (!SymbolEqualityComparer.Default.Equals(interfaceMethod.ContainingAssembly, currentAssembly))
                 {
-                    return new[] { interfaceMethod };
+                    ret.Add(interfaceMethod);
                 }
             }
             else
             {
-                List<ISymbol> ret = new();
+
                 if (methodSymbol.ReturnType.Name != "Void")
                 {
                     if (!ShouldNotConsider(methodSymbol.ReturnType))
@@ -214,26 +217,26 @@ namespace RSCG_ExportDiagram
                     }
 
                 }
-
-                var paramsAnother = methodSymbol.Parameters
-                    .Where(it => !ShouldNotConsider(it.Type))
-                    .Where(p => IsFromAnotherAssembly(p.Type, currentAssembly))
-                    .ToArray();
-
-                if (paramsAnother.Length > 0)
-                {
-                    ret.AddRange(paramsAnother);
-                    //var x = "another assemblu";
-                }
-                var otherass = (MethodBodyReferencesOtherAssembly(methodSymbol, sm, currentAssembly));
-                if (otherass.Length > 0)
-                {
-                    otherass= otherass.Where(it =>!ShouldNotConsider(it)).ToArray();
-                    ret.AddRange(otherass);
-                }
-                return ret.ToArray();
             }
-            return [];
+            var paramsAnother = methodSymbol.Parameters
+                .Where(it => !ShouldNotConsider(it.Type))
+                .Where(p => IsFromAnotherAssembly(p.Type, currentAssembly))
+                .ToArray();
+
+            if (paramsAnother.Length > 0)
+            {
+                ret.AddRange(paramsAnother);
+                //var x = "another assemblu";
+            }
+            var otherass = (MethodBodyReferencesOtherAssembly(methodSymbol, sm, currentAssembly));
+            if (otherass.Length > 0)
+            {
+                otherass= otherass.Where(it =>!ShouldNotConsider(it)).ToArray();
+                ret.AddRange(otherass);
+            }
+            return ret.ToArray();
+            
+            
         }
 
         private void VerifyProperty(IAssemblySymbol currentAssembly, IPropertySymbol propertySymbol)
