@@ -87,7 +87,7 @@ internal class GenerateText
         var str = $@"
 public class {externalReferencesType.classType.Name}_References_{nr}
 {{
-    public {externalReferencesType.classType.Name}_References()
+    public {externalReferencesType.classType.Name}_References_{nr}()
 {{
      {methods}
 }}
