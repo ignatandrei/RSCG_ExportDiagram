@@ -2,10 +2,20 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace RSCG_ExportDiagram
 {
+    enum CsprojDecl
+    {
+        None,
+        JSONFolder,
+        projectDir,
+        projectName
+    }
     [Generator]
     public class GeneratorDiagram : IIncrementalGenerator
     {
@@ -134,16 +144,20 @@ namespace RSCG_ExportDiagram
             var dataFromCsproj = cnt.AnalyzerConfigOptionsProvider.SelectMany(
                 (it, _) =>
                 {
-                    Dictionary<string,string> map = new ();
+                    Dictionary<CsprojDecl, string> map = new ();
                     
                     if(it.GlobalOptions.TryGetValue("build_property.RSCG_ExportDiagram_OutputFolder", out var value))
                     {
-                        map.Add("JSONFolder", value);
+                        map.Add(CsprojDecl.JSONFolder, value);
                     }
 
                     if (it.GlobalOptions.TryGetValue("build_property.projectDir", out var value1))
                     {
-                        map.Add("projectDir", value1);
+                        map.Add(CsprojDecl.projectDir, value1);
+                    }
+                    if (it.GlobalOptions.TryGetValue("build_property.rootnamespace", out var value2))
+                    {
+                        map.Add(CsprojDecl.projectName, value2);
                     }
                     return map.ToArray();
                     
@@ -210,6 +224,8 @@ namespace RSCG_ExportDiagram
                     
 
                 }
+
+
                 if(externalReferencesTypes.Count > 0)
                 {
                     var nr=0;
@@ -221,7 +237,44 @@ namespace RSCG_ExportDiagram
                         name=name.Replace(".", "_")+"_"+nr;
                         var text = generateText.GenerateClass();
                         context.AddSource($"{name}_gen.cs", text);
+
                     }
+                    var folder = csprojDecl
+    .Where(it => it.Key == CsprojDecl.JSONFolder).ToArray();
+                    if (folder.Length == 1)
+                    {
+                        var path = folder[0].Value;
+                        if (!Path.IsPathRooted(path))
+                        {
+                            path = Path.Combine(csprojDecl.First(it => it.Key == CsprojDecl.projectDir).Value, path);
+                        }
+                        var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
+                        var fileNameJSON = Path.Combine(path, nameProject + ".json");
+                        List<ExportClass> exportClasses = new ();
+                        nr=0;
+                        foreach (var item in externalReferencesTypes)
+                        {
+                            nr++;
+                            GenerateText generateText = new(item, nr, additionalExport);
+                            var Json = generateText.GenerateObjectsToExport();
+                            exportClasses.Add(Json);
+                        }
+                        if (exportClasses.Count > 0)
+                        {
+                            JsonSerializerOptions options = new()
+                            {
+                                WriteIndented = true
+                            };
+                            ExportAssembly exAss =new();
+                            exAss.AssemblyName = assemblyName??"";
+                            exAss.ClassesWithExternalReferences = exportClasses.ToArray();
+                            var data = JsonSerializer.Serialize(exAss, options);
+                            File.WriteAllText(fileNameJSON, data);
+                        }
+
+                    }
+
+
                 }
             });
             

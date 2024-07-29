@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 namespace RSCG_ExportDiagram;
 internal class ExternalReference
 {
@@ -62,9 +63,9 @@ internal class GenerateText
 {
     private readonly ExternalReferencesType externalReferencesType;
     private readonly int nr;
-    private readonly KeyValuePair<string, string>[] csprojDecl;
+    private readonly KeyValuePair<CsprojDecl, string>[] csprojDecl;
     
-    public GenerateText(ExternalReferencesType externalReferencesType, int nr, KeyValuePair<string, string>[] csprojDecl)
+    public GenerateText(ExternalReferencesType externalReferencesType, int nr, KeyValuePair<CsprojDecl, string>[] csprojDecl)
     {
         this.externalReferencesType = externalReferencesType;
         this.nr = nr;
@@ -100,5 +101,29 @@ public class {externalReferencesType.classType.Name}_References_{nr}
 }}
 ";
         return str;
+    }
+
+    internal ExportClass GenerateObjectsToExport()
+    {
+        ExportClass obj = new()
+        {
+
+            ClassName = externalReferencesType.classType.Name,
+            MethodsWithExternalReferences = externalReferencesType.externalReferencesMethod
+            .Select(x => new MethodswithexternalreferenceExport()
+            {
+                MethodName = x.methodType.Name,
+                References = x.externalReferences.Select(x => new ExternalReferenceExport()
+                {
+                    Name = x.symbol.Name,
+                    FullName = x.FullName(),
+                    TypeName = x.symbol.ContainingType.Name,
+                    AssemblyName = x.symbol.ContainingAssembly.Name
+                })
+                .ToArray()
+            })
+                .ToArray()
+        };
+        return obj;
     }
 }
