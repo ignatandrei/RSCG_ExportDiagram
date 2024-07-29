@@ -126,6 +126,18 @@ public class ExportClass
 {
     public string ClassName { get; set; } = "";
     public MethodswithexternalreferenceExport[] MethodsWithExternalReferences { get; set; } = [];
+    public void EliminateDuplicates()
+    {
+        //eliminate duplicates in method names, even with different parameters
+       var eq = new Eq<MethodswithexternalreferenceExport>((x, y) => x.MethodName == y.MethodName);
+        MethodsWithExternalReferences= MethodsWithExternalReferences
+            .Distinct(eq)
+            .ToArray();
+        MethodsWithExternalReferences = MethodsWithExternalReferences
+                .Where(x => x.References.Length > 0)
+                .ToArray();
+
+    }
 }
 
 public class MethodswithexternalreferenceExport

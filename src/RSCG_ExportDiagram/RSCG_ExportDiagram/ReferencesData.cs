@@ -125,6 +125,7 @@ file class {externalReferencesType.classType.Name}_References_{nr}
             })
                 .ToArray()
         };
+        obj.EliminateDuplicates();
         
         if (exclude.Length > 0)
         {
@@ -134,9 +135,7 @@ file class {externalReferencesType.classType.Name}_References_{nr}
                     .Where(extRef => !exclude.Any(it => extRef.FullName.Contains(it)))
                     .ToArray();
             }
-            obj.MethodsWithExternalReferences = obj.MethodsWithExternalReferences
-                .Where(x => x.References.Length > 0)
-                .ToArray();
+            obj.EliminateDuplicates();
         }
         return obj;
     }
