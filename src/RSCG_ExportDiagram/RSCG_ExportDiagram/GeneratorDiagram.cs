@@ -30,13 +30,13 @@ namespace RSCG_ExportDiagram
             {
                 if(methodSymbol.MethodKind == MethodKind.BuiltinOperator)
                     return true;
-                
+                typeSymbol = methodSymbol.ContainingType;
             }
             var displa = typeSymbol.Name;
-            if (displa.Contains("op_"))
-            {
-                return false;
-            }
+            //if (displa.Contains("op_"))
+            //{
+            //    return false;
+            //}
             var baseTypes = new[]
             {
                 "System.Int32",
@@ -72,8 +72,13 @@ namespace RSCG_ExportDiagram
                 "Object",
                 "string",
             };
+            var res=
+                baseTypes.Contains(typeSymbol.ToDisplayString())
+                ||
+                baseTypes.Contains(typeSymbol.Name)
 
-            return baseTypes.Contains(typeSymbol.ToDisplayString());
+                ;
+            return res;
         }
         private T IsImplementationOfInterfaceMethod<T>(T methodSymbol)
             where T : ISymbol
@@ -283,7 +288,7 @@ namespace RSCG_ExportDiagram
                             ExportAssembly exAss =new();
                             exAss.AssemblyName = assemblyName??"";
                             exAss.ClassesWithExternalReferences = exportClasses.ToArray();
-                            //File.WriteAllText(fileNameJSON, exAss.ExportJSON());
+                            File.WriteAllText(fileNameJSON, exAss.ExportJSON());
                             File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
                         }
 

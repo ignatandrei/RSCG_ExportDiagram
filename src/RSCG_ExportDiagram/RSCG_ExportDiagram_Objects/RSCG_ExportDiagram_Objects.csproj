@@ -14,4 +14,12 @@
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GX</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
+	<ItemGroup>
+		<CompilerVisibleProperty Include="RSCG_ExportDiagram_OutputFolder" />
+		<CompilerVisibleProperty Include="RSCG_ExportDiagram_Exclude" />
+	</ItemGroup>
+	<PropertyGroup>
+		<RSCG_ExportDiagram_OutputFolder>..</RSCG_ExportDiagram_OutputFolder>
+		<RSCG_ExportDiagram_Exclude>System.Runtime.IList,System.Runtime.Object,System.Runtime.Exception,System.Runtime.Func,System.Runtime.String,System.Runtime.IDictionary,System.Collections,System.Console,System.Linq</RSCG_ExportDiagram_Exclude>
+	</PropertyGroup>
 </Project>

@@ -4,6 +4,9 @@ public partial class Program
 {
     static void Main()
     {
+        var s =int.Parse("0");
+        var s2 = int.Parse("0");
+
         File.WriteAllText("asd", "asd");
         IPerson p = new Person();
         p.FirstName = "";
