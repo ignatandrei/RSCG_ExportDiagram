@@ -86,6 +86,9 @@ public class ExportAssembly
                 var methods = assemblyReferences[item]
                     .Where(it=>it.TypeName == typeName)
                     .ToArray();
+                methods = methods
+                    .Distinct(eq)
+                    .ToArray();
                 foreach (var met in methods)
                 {
                     var nameMethod = met.FullName;
