@@ -92,7 +92,7 @@ internal class GenerateText
 
         var str = $@"
 //{string.Join("\r\n//", csprojDecl.Select(it=>$"{it.Key}={it.Value}"))}
-public class {externalReferencesType.classType.Name}_References_{nr}
+file class {externalReferencesType.classType.Name}_References_{nr}
 {{
     public {externalReferencesType.classType.Name}_References_{nr}()
 {{
