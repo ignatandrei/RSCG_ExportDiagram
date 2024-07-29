@@ -20,11 +20,11 @@ internal class ExternalReference
     }
     public string FullName()
     {
-        var isStatic = symbol.IsStatic;
-        if (isStatic)
-        {
-            return symbol.ContainingAssembly.Name + "." +  symbol.Name;
-        }
+        //var isStatic = symbol.IsStatic;
+        //if (isStatic)
+        //{
+        //    return symbol.ContainingAssembly.Name + "." +  symbol.Name;
+        //}
        return symbol.ContainingAssembly.Name + "." + symbol.ContainingType!.Name + "." + symbol.Name;
     }
 }
@@ -103,11 +103,12 @@ file class {externalReferencesType.classType.Name}_References_{nr}
         return str;
     }
 
-    internal ExportClass GenerateObjectsToExport()
+    internal ExportClass GenerateObjectsToExport(string[] exclude)
     {
-        ExportClass obj = new()
-        {
+        exclude = exclude.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
+        ExportClass obj = new()
+        {            
             ClassName = externalReferencesType.classType.Name,
             MethodsWithExternalReferences = externalReferencesType.externalReferencesMethod
             .Select(x => new MethodswithexternalreferenceExport()
@@ -124,6 +125,19 @@ file class {externalReferencesType.classType.Name}_References_{nr}
             })
                 .ToArray()
         };
+        
+        if (exclude.Length > 0)
+        {
+            foreach (var met in obj.MethodsWithExternalReferences)
+            {
+                met.References = met.References
+                    .Where(extRef => !exclude.Any(it => extRef.FullName.Contains(it)))
+                    .ToArray();
+            }
+            obj.MethodsWithExternalReferences = obj.MethodsWithExternalReferences
+                .Where(x => x.References.Length > 0)
+                .ToArray();
+        }
         return obj;
     }
 }

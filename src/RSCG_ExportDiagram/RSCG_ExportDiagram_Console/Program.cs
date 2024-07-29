@@ -4,13 +4,14 @@ public partial class Program
 {
     static void Main()
     {
+        File.WriteAllText("asd", "asd");
         IPerson p = new Person();
         p.FirstName = "";
         p.FirstName = "Andrei";
         p.LastName = "Ignat";
 
         Console.WriteLine($"Hello, {p.FullName()}");
-        List<IPerson> list = new ();
+        List<IPerson> list = new();
         list.Add(p);
         p = list.First();
 

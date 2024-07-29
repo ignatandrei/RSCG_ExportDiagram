@@ -1,8 +1,29 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
 namespace RSCG_ExportDiagram;
+class Eq<T>: IEqualityComparer<T>
+{
+    private Func<T, T, bool> equals;
+
+    public Eq(Func<T, T, bool> equals)
+    {
+        this.equals = equals;
+    }
+
+    public bool Equals(T x, T y)
+    {
+        return equals(x, y);
+    }
+
+    public int GetHashCode(T obj)
+    {
+        return base.GetHashCode();
+    }
+}
 public class ExportAssembly
 {
     public string AssemblyName { get; set; } = "";
@@ -26,17 +47,21 @@ public class ExportAssembly
         sb.AppendLine();
         sb.AppendLine("```mermaid");
         sb.AppendLine("flowchart TD");//TB?
+        sb.AppendLine($"%% start main assembly {AssemblyName}");
         sb.AppendLine($"subgraph {AssemblyName}");
         sb.AppendLine($"style {AssemblyName} fill:#f9f,stroke:#333,stroke-width:4px");
 
         foreach (var expClass in this.ClassesWithExternalReferences)
         {
-            //main assembly
+            sb.AppendLine($"%% start class {expClass.ClassName}");
             sb.AppendLine($"subgraph {expClass.ClassName}");
             foreach (var met in expClass.MethodsWithExternalReferences)
             {
-                //TODO: add full method name
-                sb.AppendLine($"{expClass.ClassName}.{met.MethodName}[{met.MethodName}]");
+                var methodName = met.MethodName;
+                var lastDot = methodName.LastIndexOf('.');
+                if(lastDot > 0)
+                    methodName = methodName.Substring(lastDot + 1);
+                sb.AppendLine($"{expClass.ClassName}.{met.MethodName}[{methodName}]");
             }
             sb.AppendLine($"%% end of subgraph {expClass.ClassName}");
             sb.AppendLine("end");
@@ -46,20 +71,34 @@ public class ExportAssembly
 
         foreach (var item in assemblyReferences.Keys)
         {
+            sb.AppendLine($"%% start assembly {item}");
             sb.AppendLine($"subgraph {item}");
-
-            var methods = assemblyReferences[item]
-                .Select(it => it.FullName)
-                .Distinct()
+            var eq = new Eq<ExternalReferenceExport>((x, y) => x.FullName == y.FullName);
+            var typeNames = assemblyReferences[item]
+                .Distinct(eq)
+                .Select(it => it.TypeName)
                 .ToArray();
-            foreach (var met in methods)
+            foreach (var typeName in typeNames)
             {
-                var lastDot = met.LastIndexOf('.');
-                lastDot = met.LastIndexOf('.', lastDot - 1);
-                var nameMethod = met.Substring(lastDot + 1);
-                sb.AppendLine($"{met}[{nameMethod}]");
+                sb.AppendLine($"%% start type {typeName}");
+                sb.AppendLine($"subgraph {typeName}");
+
+                var methods = assemblyReferences[item]
+                    .Where(it=>it.TypeName == typeName)
+                    .ToArray();
+                foreach (var met in methods)
+                {
+                    var nameMethod = met.FullName;
+                    sb.AppendLine($"{nameMethod}[{met.Name}]");
+                }
+
+
+                sb.AppendLine($"%% end of subgraph {typeName}");
+                sb.AppendLine($"end");
+
             }
 
+            
             sb.AppendLine($"%% end of subgraph {item}");
             sb.AppendLine($"end");
 

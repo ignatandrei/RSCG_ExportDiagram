@@ -14,7 +14,8 @@ namespace RSCG_ExportDiagram
         None,
         JSONFolder,
         projectDir,
-        projectName
+        projectName,
+        excludeData
     }
     [Generator]
     public class GeneratorDiagram : IIncrementalGenerator
@@ -159,6 +160,10 @@ namespace RSCG_ExportDiagram
                     {
                         map.Add(CsprojDecl.projectName, value2);
                     }
+                    if (it.GlobalOptions.TryGetValue("build_property.RSCG_ExportDiagram_Exclude", out var value3))
+                    {
+                        map.Add(CsprojDecl.excludeData, value3);
+                    }
                     return map.ToArray();
                     
                 }
@@ -187,6 +192,7 @@ namespace RSCG_ExportDiagram
                 var (assemblyName, classToImplement) = compound;
                 var additionalExport = csprojDecl.ToArray().Distinct().ToArray();
                 List<ExternalReferencesType> externalReferencesTypes = [];
+                
                 foreach (var(sm, item) in classToImplement)
                 {
                     
@@ -224,9 +230,17 @@ namespace RSCG_ExportDiagram
                     
 
                 }
+                string[] excludeArr = [];
+                var strExc = csprojDecl
+                .Where(it => it.Key == CsprojDecl.excludeData)
+                .ToArray();
+                if (strExc.Length == 1)
+                {
+                    excludeArr = strExc[0].Value.Split(',');
+                    excludeArr ??= [];
+                }
 
-
-                if(externalReferencesTypes.Count > 0)
+                if (externalReferencesTypes.Count > 0)
                 {
                     var nr=0;
                     foreach (var item in externalReferencesTypes)
@@ -257,7 +271,7 @@ namespace RSCG_ExportDiagram
                         {
                             nr++;
                             GenerateText generateText = new(item, nr, additionalExport);
-                            var Json = generateText.GenerateObjectsToExport();
+                            var Json = generateText.GenerateObjectsToExport(excludeArr);                            
                             exportClasses.Add(Json);
                         }
                         if (exportClasses.Count > 0)
@@ -269,7 +283,7 @@ namespace RSCG_ExportDiagram
                             ExportAssembly exAss =new();
                             exAss.AssemblyName = assemblyName??"";
                             exAss.ClassesWithExternalReferences = exportClasses.ToArray();
-                            File.WriteAllText(fileNameJSON, exAss.ExportJSON());
+                            //File.WriteAllText(fileNameJSON, exAss.ExportJSON());
                             File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
                         }
 

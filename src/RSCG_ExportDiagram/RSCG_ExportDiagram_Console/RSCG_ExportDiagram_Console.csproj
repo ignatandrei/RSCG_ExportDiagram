@@ -18,8 +18,10 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<CompilerVisibleProperty Include="RSCG_ExportDiagram_OutputFolder" />
+		<CompilerVisibleProperty Include="RSCG_ExportDiagram_Exclude" />
 	</ItemGroup>
 	<PropertyGroup>
 		<RSCG_ExportDiagram_OutputFolder>.</RSCG_ExportDiagram_OutputFolder>
+		<RSCG_ExportDiagram_Exclude></RSCG_ExportDiagram_Exclude>
 	</PropertyGroup>
 </Project>
