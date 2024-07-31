@@ -75,8 +75,9 @@ public class ExportAssembly
             sb.AppendLine($"subgraph {item}");
             var eq = new Eq<ExternalReferenceExport>((x, y) => x.FullName == y.FullName);
             var typeNames = assemblyReferences[item]
-                .Distinct(eq)
+                //.Distinct(eq)
                 .Select(it => it.TypeName)
+                .Distinct()
                 .ToArray();
             foreach (var typeName in typeNames)
             {
