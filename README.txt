@@ -7,7 +7,7 @@ Add to the csproj
     
     ```xml
   <ItemGroup>
-    <PackageReference Include="RSCG_ExportDiagram" Version="2024.730.717" />
+    <PackageReference Include="RSCG_ExportDiagram" Version="2024.731.2055" />
   </ItemGroup>
   <PropertyGroup>
     <RSCG_ExportDiagram_OutputFolder>.</RSCG_ExportDiagram_OutputFolder>
