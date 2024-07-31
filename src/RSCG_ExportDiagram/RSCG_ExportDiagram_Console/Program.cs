@@ -4,7 +4,8 @@ public partial class Program
 {
     static void Main()
     {
-        var s =int.Parse("0");
+        var y = int.MaxValue;
+        var s = int.Parse("0");
         var s2 = int.Parse("0");
 
         File.WriteAllText("asd", "asd");

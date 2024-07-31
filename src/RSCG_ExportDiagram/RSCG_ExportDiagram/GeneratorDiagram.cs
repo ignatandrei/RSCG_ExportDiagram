@@ -26,6 +26,10 @@ namespace RSCG_ExportDiagram
         }
         private bool ShouldNotConsider(ISymbol typeSymbol)
         {
+            if(typeSymbol is IFieldSymbol field)
+            {
+                typeSymbol = field.ContainingType;
+            }
             if(typeSymbol is IMethodSymbol methodSymbol)
             {
                 if(methodSymbol.MethodKind == MethodKind.BuiltinOperator)
@@ -39,6 +43,8 @@ namespace RSCG_ExportDiagram
             //}
             var baseTypes = new[]
             {
+                "System.DateTimeOffset",
+                "System.DateTime",
                 "System.Int32",
                 "System.String",
                 "System.Double",
@@ -55,6 +61,8 @@ namespace RSCG_ExportDiagram
                 "System.Decimal",
                 "System.Object",
 
+                "DateTimeOffset",
+                "DateTime",
                 "Int32",
                 "String",
                 "Double",
@@ -211,7 +219,9 @@ namespace RSCG_ExportDiagram
                     {
                         if (member is IPropertySymbol propertySymbol)
                         {
-                            VerifyProperty(currentAssembly, propertySymbol);
+                            // for the moment, no property
+                            continue;
+                            //VerifyProperty(currentAssembly, propertySymbol);
                         }
                         else if (member is IMethodSymbol methodSymbol)
                         {
@@ -344,7 +354,7 @@ namespace RSCG_ExportDiagram
             if (otherass.Length > 0)
             {
                 otherass= otherass.Where(it =>!ShouldNotConsider(it)).ToArray();
-                ret.AddRange(otherass);
+                if(otherass.Length>0)ret.AddRange(otherass);
             }
             return ret.ToArray();
             
