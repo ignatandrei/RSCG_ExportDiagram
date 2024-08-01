@@ -4,21 +4,27 @@ public partial class Program
 {
     static void Main()
     {
-        var y = int.MaxValue;
-        var s = int.Parse("0");
-        var s2 = int.Parse("0");
+        try
+        {
+            var y = int.MaxValue;
+            var s = int.Parse("0");
+            var s2 = int.Parse("0");
 
-        File.WriteAllText("asd", "asd");
-        IPerson p = new Person();
-        p.FirstName = "";
-        p.FirstName = "Andrei";
-        p.LastName = "Ignat";
+            File.WriteAllText("asd", "asd");
+            IPerson p = new Person();
+            p.FirstName = "";
+            p.FirstName = "Andrei";
+            p.LastName = "Ignat";
 
-        Console.WriteLine($"Hello, {p.FullName()}");
-        List<IPerson> list = new();
-        list.Add(p);
-        p = list.First();
-
+            Console.WriteLine($"Hello, {p.FullName()}");
+            List<IPerson> list = new();
+            list.Add(p);
+            p = list.First();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 }
 
