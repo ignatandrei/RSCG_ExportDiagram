@@ -298,7 +298,10 @@ namespace RSCG_ExportDiagram
                             };
                             ExportAssembly exAss =new();
                             exAss.AssemblyName = assemblyName??"";
-                            exAss.ClassesWithExternalReferences = exportClasses.ToArray();
+                            exAss.ClassesWithExternalReferences = 
+                                exportClasses
+                                .Distinct(new Eq<ExportClass>((x, y) => x.ClassName == y.ClassName))
+                                .ToArray();
                             File.WriteAllText(fileNameJSON, exAss.ExportJSON());
                             File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
                             File.WriteAllText(fileNameHTML, exAss.ExportHTML());
