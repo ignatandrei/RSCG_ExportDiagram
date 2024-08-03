@@ -1,0 +1,74 @@
+@inherits RazorBlade.PlainTextTemplate<ExportAssembly>
+
+@{
+    var assemblyName= Model.AssemblyName;
+    var extRefClasses = Model.ClassesWithExternalReferences;
+    var assemblyReferences = Model.ClassesWithExternalReferences
+                .SelectMany(it => it.MethodsWithExternalReferences)
+                .SelectMany(it => it.References)
+                .GroupBy(it => it.AssemblyName)
+                .ToDictionary(it => it.Key, it => it.ToArray());
+    var eq = new Eq<ExternalReferenceExport>((x, y) => x.FullClassName() == y.FullClassName());
+
+}
+
+# @assemblyName
+
+```mermaid
+flowchart TD
+%% start main assembly @assemblyName
+subgraph @assemblyName
+style @assemblyName fill:#f9f,stroke:#333,stroke-width:4px
+
+@foreach(var expClass in extRefClasses){
+<text>
+%% start class  @expClass.ClassName
+subgraph @expClass.ClassName
+
+%% end class @expClass.ClassName
+end
+</text>
+}
+
+%% end main assembly @assemblyName
+end
+
+@foreach (var key in assemblyReferences.Keys){
+
+var typeNames = assemblyReferences[key]
+    .Distinct(eq)
+    //.Select(it => it.TypeName)
+    //.Distinct()
+    .ToArray();
+
+<text>
+%% start assembly @key
+subgraph @key
+
+@foreach (var typeName in typeNames)
+{
+string name = $"{typeName.FullClassName()}[{typeName.TypeName}]";
+<text>
+@name
+</text>
+}
+%% end assembly @key
+end
+
+</text>
+}
+
+%% draw references
+
+@foreach (var item in Model.ClassesWithExternalReferences)
+{
+foreach (var extClass in item.ExternalClasses())
+{
+        string refName = $"{item.ClassName} --> {extClass}";
+<text>
+    @refName
+</text>
+}
+}
+
+```

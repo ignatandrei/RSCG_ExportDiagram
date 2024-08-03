@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-
-namespace RSCG_ExportDiagram;
+﻿namespace RSCG_ExportDiagram;
 class Eq<T>: IEqualityComparer<T>
 {
     private Func<T, T, bool> equals;
@@ -35,6 +29,9 @@ public class ExportAssembly
     }
     public string ExportMermaid()
     {
+        Templates.DisplayMarkdownWithMermaid template = new(this);
+        return template.Render();
+
         var assemblyReferences = this.ClassesWithExternalReferences
             .SelectMany(it => it.MethodsWithExternalReferences)
             .SelectMany(it => it.References)
@@ -142,6 +139,18 @@ public class ExportClass
                 .ToArray();
 
     }
+    public string[] ExternalClasses()
+    {
+       return  this.MethodsWithExternalReferences
+            .SelectMany(it => it.References)
+            //.Distinct(new Eq<ExternalReferenceExport>(
+            //    (x, y) => 
+            //    x.AssemblyName+"."+x.TypeName == y.AssemblyName+"."+y.TypeName))
+            .Select(it=>it.FullClassName())
+            .Distinct()
+            .ToArray()??[];
+            ;
+    }
 }
 
 public class MethodswithexternalreferenceExport
@@ -156,5 +165,10 @@ public class ExternalReferenceExport
     public string FullName { get; set; } = "";
     public string TypeName { get; set; } = "";
     public string AssemblyName { get; set; } = "";
+
+    public string FullClassName()
+    {
+        return AssemblyName + "." + TypeName;
+    }
 }
 
