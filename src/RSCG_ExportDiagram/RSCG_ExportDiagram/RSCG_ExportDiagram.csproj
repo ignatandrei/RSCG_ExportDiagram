@@ -84,6 +84,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AdditionalFiles Include="Templates\DisplayVisJS.cshtml" />
 	  <AdditionalFiles Include="Templates\DisplayMarkdownWithMermaid.cshtml" />
 	</ItemGroup>
 

@@ -280,6 +280,7 @@ namespace RSCG_ExportDiagram
                         var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
                         var fileNameJSON = Path.Combine(path, nameProject + ".json");
                         var fileNameMermaid = Path.Combine(path, nameProject + ".md");
+                        var fileNameHTML = Path.Combine(path, nameProject + ".html");
                         List<ExportClass> exportClasses = new ();
                         nr=0;
                         foreach (var item in externalReferencesTypes)
@@ -300,6 +301,8 @@ namespace RSCG_ExportDiagram
                             exAss.ClassesWithExternalReferences = exportClasses.ToArray();
                             File.WriteAllText(fileNameJSON, exAss.ExportJSON());
                             File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
+                            File.WriteAllText(fileNameHTML, exAss.ExportHTML());
+
                         }
 
                     }

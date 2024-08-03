@@ -59,8 +59,6 @@ end
 </text>
 }
 
-%% draw references
-
 @foreach (var item in Model.ClassesWithExternalReferences)
 {
  foreach (var extClass in item.ExternalClasses())
@@ -73,6 +71,9 @@ end
 @{
     data = data.Distinct().ToList();
 }
+
+%% draw references @data.Count
+
 @foreach (var refName in data)
 {
 <text>
