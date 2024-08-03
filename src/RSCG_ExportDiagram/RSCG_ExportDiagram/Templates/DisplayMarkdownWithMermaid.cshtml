@@ -9,7 +9,8 @@
                 .GroupBy(it => it.AssemblyName)
                 .ToDictionary(it => it.Key, it => it.ToArray());
     var eq = new Eq<ExternalReferenceExport>((x, y) => x.FullClassName() == y.FullClassName());
-
+    List<string> data = new List<string>();
+    
 }
 
 # @assemblyName
@@ -62,13 +63,21 @@ end
 
 @foreach (var item in Model.ClassesWithExternalReferences)
 {
-foreach (var extClass in item.ExternalClasses())
+ foreach (var extClass in item.ExternalClasses())
 {
         string refName = $"{item.ClassName} --> {extClass}";
+        data.Add(refName);  
+}
+
+}
+@{
+    data = data.Distinct().ToList();
+}
+@foreach (var refName in data)
+{
 <text>
     @refName
 </text>
-}
 }
 
 ```
