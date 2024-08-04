@@ -106,7 +106,7 @@ file class {externalReferencesType.classType.Name}_References_{nr}
     internal ExportClass GenerateObjectsToExport(string[] exclude)
     {
         exclude = exclude.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
-
+        
         ExportClass obj = new()
         {            
             ClassName = externalReferencesType.classType.Name,

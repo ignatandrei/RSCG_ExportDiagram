@@ -22,9 +22,33 @@ namespace RSCG_ExportDiagram
     {
         private bool IsFromAnotherAssembly(ITypeSymbol typeSymbol, IAssemblySymbol containingAssembly)
         {
-            return !SymbolEqualityComparer.Default.Equals(typeSymbol.ContainingAssembly, containingAssembly);
+            var ret= !SymbolEqualityComparer.Default.Equals(typeSymbol.ContainingAssembly, containingAssembly);
+            var ass=typeSymbol.ContainingAssembly;
+            return ret;
         }
-        private bool ShouldNotConsider(ISymbol typeSymbol)
+        private string[] NameReferencesProject(string csprojPath)
+        {
+            List<string> ret = new();
+            XDocument csproj = XDocument.Load(csprojPath);
+
+            var projectReferences = csproj.Descendants("ProjectReference")
+                                          .Select(pr => pr.Attribute("Include")?.Value)
+                                          .Where(include => !string.IsNullOrEmpty(include))  
+                                          .Select(it=>it!)
+                                          .ToArray()??[];
+
+            projectReferences = projectReferences
+                .Select(it => it.Split('\\', '/'))
+                .Select(it => it.Last())
+                .ToArray();
+
+            
+            return projectReferences ;
+        }
+        
+
+    
+    private bool ShouldNotConsider(ISymbol typeSymbol)
         {
             if(typeSymbol is IFieldSymbol field)
             {
@@ -183,7 +207,10 @@ namespace RSCG_ExportDiagram
                 ).Collect(); 
             ;
             var assemblyNameProv = cnt.CompilationProvider
-            .Select((compilation, _) => compilation.AssemblyName)
+            .Select((compilation, _) => {
+
+                return compilation.AssemblyName;
+                })
             ;
             
             var classToImplementProv = 
@@ -205,7 +232,13 @@ namespace RSCG_ExportDiagram
                 var (assemblyName, classToImplement) = compound;
                 var additionalExport = csprojDecl.ToArray().Distinct().ToArray();
                 List<ExternalReferencesType> externalReferencesTypes = [];
-                
+
+                var projDir = csprojDecl.First(it => it.Key == CsprojDecl.projectDir).Value;
+                var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
+                var fullNameProject = Path.Combine(projDir, nameProject + ".csproj");
+                var refProjects = NameReferencesProject(fullNameProject);
+                refProjects = refProjects.Select(it => it.Replace(".csproj","")).ToArray();
+
                 foreach (var(sm, item) in classToImplement)
                 {
                     
@@ -230,6 +263,13 @@ namespace RSCG_ExportDiagram
                             var props = VerifyMethod(sm, currentAssembly, methodSymbol);
                             if (props?.Length > 0)
                             {
+                                props = props.Where(it => refProjects.Contains(it.ContainingAssembly.Name)).ToArray();
+                                //foreach(var prop in props)
+                                //{
+                                //    var x= prop.ContainingAssembly.Name.ToString();
+                                //    bool isProject = refProjects.Contains(x);
+                                //    isProject=!isProject;
+                                //}   
                                 referencesMethod.Add(new ExternalReferencesForMethod(methodSymbol, props));
                             }
                         }
@@ -275,9 +315,8 @@ namespace RSCG_ExportDiagram
                         var path = folder[0].Value;
                         if (!Path.IsPathRooted(path))
                         {
-                            path = Path.Combine(csprojDecl.First(it => it.Key == CsprojDecl.projectDir).Value, path);
+                            path = Path.Combine(projDir, path);
                         }
-                        var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
                         var fileNameJSON = Path.Combine(path, nameProject + ".json");
                         var fileNameMermaid = Path.Combine(path, nameProject + ".md");
                         var fileNameHTML = Path.Combine(path, nameProject + ".html");

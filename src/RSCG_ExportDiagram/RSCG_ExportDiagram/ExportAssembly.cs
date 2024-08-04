@@ -7,7 +7,15 @@ public class ExportAssembly
 
     public string ExportJSON()
     {
-        return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        //return "asda";
+        try
+        {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch(Exception ex)
+        {
+            return ex.Message;
+        }
     }
     public string ExportMermaid()
     {
