@@ -263,7 +263,10 @@ namespace RSCG_ExportDiagram
                             var props = VerifyMethod(sm, currentAssembly, methodSymbol);
                             if (props?.Length > 0)
                             {
-                                props = props.Where(it => refProjects.Contains(it.ContainingAssembly.Name)).ToArray();
+                                props = props
+                                .Where(it=>it.ContainingAssembly != null)
+                                .Where(it => refProjects.Contains(it.ContainingAssembly.Name))
+                                .ToArray();
                                 //foreach(var prop in props)
                                 //{
                                 //    var x= prop.ContainingAssembly.Name.ToString();
