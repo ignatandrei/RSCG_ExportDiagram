@@ -8,10 +8,10 @@ Add to the csproj
 ```xml
 
 <ItemGroup>
-<PackageReference Include="RSCG_ExportDiagram" Version="2024.804.2051" />
+<PackageReference Include="RSCG_ExportDiagram" Version="2024.805.1823" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
 </ItemGroup>
 <PropertyGroup>
-<RSCG_ExportDiagram_OutputFolder>.</RSCG_ExportDiagram_OutputFolder>
+<RSCG_ExportDiagram_OutputFolder>..</RSCG_ExportDiagram_OutputFolder>
 <RSCG_ExportDiagram_Exclude>System.Runtime.Uri,System.Runtime.IList,System.Runtime.Object,System.Runtime.Exception,System.Runtime.Func,System.Runtime.String,System.Runtime.IDictionary,System.Collections,System.Console,System.Linq</RSCG_ExportDiagram_Exclude>
 </PropertyGroup>
 
