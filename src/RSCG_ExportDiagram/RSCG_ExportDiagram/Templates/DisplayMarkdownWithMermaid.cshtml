@@ -82,3 +82,48 @@ end
 }
 
 ```
+
+# Classes for @assemblyName
+
+@foreach (var expClass in extRefClasses)
+{
+    data = new List<string>();
+    <text>
+## @expClass.ClassName
+
+```mermaid
+flowchart TD
+%% start class @expClass.ClassName
+subgraph @expClass.ClassName
+style @expClass.ClassName fill:#f9f,stroke:#333,stroke-width:4px
+@foreach(var expMethod in expClass.MethodsWithExternalReferences)
+{
+<text>
+%% start method @expMethod.MethodName
+@expMethod.MethodName
+
+</text>
+}
+end
+
+@foreach(var item in expClass.MethodsWithExternalReferences)
+{
+    foreach (var extClass in item.References)
+    {
+        string refName = $"{item.MethodName} --> {extClass.FullClassName()}";
+        data.Add(refName);  
+    }
+}
+@{
+    data = data.Distinct().ToList();
+}
+@foreach (var refName in data)
+{
+<text>
+@refName
+</text>
+}
+```
+
+    </text>
+}

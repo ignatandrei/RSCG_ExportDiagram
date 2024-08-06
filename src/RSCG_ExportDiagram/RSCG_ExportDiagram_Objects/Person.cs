@@ -2,7 +2,7 @@
 
 namespace RSCG_ExportDiagram_Objects;
 
-public class Person : IPerson
+public class Person : IPerson, IDebug
 {
     public Person()
     {
@@ -18,7 +18,7 @@ public class Person : IPerson
     {
         File.WriteAllText(nameFile, FullName());
     }
-    private void DebugData()
+    public void DebugData()
     {
         var x = $"Debugging {FullName}";
         var MyAge=(this as IPerson).Age;

@@ -343,6 +343,7 @@ namespace RSCG_ExportDiagram
                             exAss.ClassesWithExternalReferences = 
                                 exportClasses
                                 .Distinct(new Eq<ExportClass>((x, y) => x.ClassName == y.ClassName))
+                                .OrderBy(it => it.ClassName)
                                 .ToArray();
                             File.WriteAllText(fileNameJSON, exAss.ExportJSON());
                             File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
