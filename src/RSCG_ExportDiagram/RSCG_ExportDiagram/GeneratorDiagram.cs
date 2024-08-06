@@ -132,7 +132,7 @@ namespace RSCG_ExportDiagram
         }
         private ISymbol[] MethodBodyReferencesOtherAssembly(IMethodSymbol methodSymbol, SemanticModel semanticModel, IAssemblySymbol currentAssembly)
         {
-            var methodSyntax = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as MethodDeclarationSyntax;
+            var methodSyntax = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as BaseMethodDeclarationSyntax;
             if (methodSyntax == null)
                 return [];
 
@@ -329,8 +329,8 @@ namespace RSCG_ExportDiagram
                         {
                             nr++;
                             GenerateText generateText = new(item, nr, additionalExport);
-                            var Json = generateText.GenerateObjectsToExport(excludeArr);                            
-                            exportClasses.Add(Json);
+                            var Json = generateText.GenerateObjectsToExport(excludeArr);
+                            if(Json != null) exportClasses.Add(Json);
                         }
                         if (exportClasses.Count > 0)
                         {

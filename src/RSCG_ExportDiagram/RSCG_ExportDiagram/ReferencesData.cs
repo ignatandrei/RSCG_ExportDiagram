@@ -103,7 +103,7 @@ file class {externalReferencesType.classType.Name}_References_{nr}
         return str;
     }
 
-    internal ExportClass GenerateObjectsToExport(string[] exclude)
+    internal ExportClass? GenerateObjectsToExport(string[] exclude)
     {
         exclude = exclude.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
         
@@ -137,6 +137,7 @@ file class {externalReferencesType.classType.Name}_References_{nr}
             }
             obj.EliminateDuplicates();
         }
-        return obj;
+        if(obj.MethodsWithExternalReferences?.Length > 0) return obj;
+        return null;
     }
 }
