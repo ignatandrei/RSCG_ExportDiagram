@@ -8,7 +8,7 @@ Add to the csproj
 ```xml
 
 <ItemGroup>
-<PackageReference Include="RSCG_ExportDiagram" Version="2024.806.1823" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
+<PackageReference Include="RSCG_ExportDiagram" Version="2024.806.2104" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
 </ItemGroup>
 <ItemGroup>
 	<CompilerVisibleProperty Include="RSCG_ExportDiagram_OutputFolder" />
