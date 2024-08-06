@@ -8,11 +8,15 @@ Add to the csproj
 ```xml
 
 <ItemGroup>
-<PackageReference Include="RSCG_ExportDiagram" Version="2024.805.1823" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
+<PackageReference Include="RSCG_ExportDiagram" Version="2024.806.1823" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
 </ItemGroup>
+<ItemGroup>
+	<CompilerVisibleProperty Include="RSCG_ExportDiagram_OutputFolder" />
+	<CompilerVisibleProperty Include="RSCG_ExportDiagram_Exclude" />
+</ItemGroup>	
 <PropertyGroup>
 <RSCG_ExportDiagram_OutputFolder>..</RSCG_ExportDiagram_OutputFolder>
-<RSCG_ExportDiagram_Exclude>System.Runtime.Uri,System.Runtime.IList,System.Runtime.Object,System.Runtime.Exception,System.Runtime.Func,System.Runtime.String,System.Runtime.IDictionary,System.Collections,System.Console,System.Linq</RSCG_ExportDiagram_Exclude>
+<RSCG_ExportDiagram_Exclude></RSCG_ExportDiagram_Exclude>
 </PropertyGroup>
 
 ```
