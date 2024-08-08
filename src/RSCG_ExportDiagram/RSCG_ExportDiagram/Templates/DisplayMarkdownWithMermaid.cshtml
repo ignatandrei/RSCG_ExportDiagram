@@ -16,7 +16,7 @@
 # @assemblyName
 
 ```mermaid
-flowchart TD
+flowchart LR
 %% start main assembly @assemblyName
 subgraph @assemblyName
 style @assemblyName fill:#f9f,stroke:#333,stroke-width:4px
@@ -92,7 +92,7 @@ end
 ## @expClass.ClassName
 
 ```mermaid
-flowchart TD
+flowchart LR
 %% start class @expClass.ClassName
 subgraph @expClass.ClassName
 style @expClass.ClassName fill:#f9f,stroke:#333,stroke-width:4px
@@ -105,6 +105,24 @@ style @expClass.ClassName fill:#f9f,stroke:#333,stroke-width:4px
 </text>
 }
 end
+
+@foreach(var ass in expClass.ExternalAssemblies())
+{
+<text>
+subgraph @ass
+
+@foreach (var className in expClass.FullClassNamesInAssembly(ass)){
+<text>
+@className
+</text>
+}
+
+end
+</text>
+
+
+            
+}
 
 @foreach(var item in expClass.MethodsWithExternalReferences)
 {
@@ -125,5 +143,5 @@ end
 }
 ```
 
-    </text>
+</text>
 }

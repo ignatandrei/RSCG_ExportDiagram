@@ -16,6 +16,24 @@ public class ExportClass
                 .ToArray();
 
     }
+    public string[] FullClassNamesInAssembly(string ass)
+    {
+        return this.MethodsWithExternalReferences
+            .SelectMany(it => it.References)
+            .Where(x => x.AssemblyName == ass)
+            .Select(x=>x.FullClassName())
+            .Distinct()
+            .ToArray();
+    }
+    public string[] ExternalAssemblies()
+    {
+        return this.MethodsWithExternalReferences
+            .SelectMany(it => it.References)
+            .Select(it => it.AssemblyName)
+            .Distinct()
+            .ToArray()
+            ;
+    }
     public string[] ExternalClasses()
     {
        return  this.MethodsWithExternalReferences
