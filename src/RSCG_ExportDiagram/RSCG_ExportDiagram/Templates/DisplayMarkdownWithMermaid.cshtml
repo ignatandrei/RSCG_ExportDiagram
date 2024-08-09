@@ -13,7 +13,7 @@
     
 }
 
-# @assemblyName
+# Classes of @assemblyName
 
 ```mermaid
 flowchart LR
@@ -83,13 +83,12 @@ end
 
 ```
 
-# Classes for @assemblyName
 
 @foreach (var expClass in extRefClasses)
 {
     data = new List<string>();
     <text>
-## @expClass.ClassName
+## Class @expClass.ClassName
 
 ```mermaid
 flowchart LR
