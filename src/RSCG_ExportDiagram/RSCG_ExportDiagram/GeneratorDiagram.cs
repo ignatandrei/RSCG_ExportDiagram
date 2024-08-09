@@ -320,9 +320,9 @@ namespace RSCG_ExportDiagram
                         {
                             path = Path.Combine(projDir, path);
                         }
-                        var fileNameJSON = Path.Combine(path, nameProject + ".json");
-                        var fileNameMermaid = Path.Combine(path, nameProject + ".md");
-                        var fileNameHTML = Path.Combine(path, nameProject + ".html");
+                        var fileNameJSON = Path.Combine(path, nameProject + "_rel_csproj.json");
+                        var fileNameMermaid = Path.Combine(path, nameProject + "_rel_csproj.md");
+                        var fileNameHTML = Path.Combine(path, nameProject + "_rel_csproj.html");
                         List<ExportClass> exportClasses = new ();
                         nr=0;
                         foreach (var item in externalReferencesTypes)
