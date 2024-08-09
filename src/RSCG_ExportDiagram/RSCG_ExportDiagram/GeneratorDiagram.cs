@@ -347,7 +347,7 @@ namespace RSCG_ExportDiagram
                                 .ToArray();
                             File.WriteAllText(fileNameJSON, exAss.ExportJSON());
                             File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
-                            File.WriteAllText(fileNameHTML, exAss.ExportHTML());
+                            //File.WriteAllText(fileNameHTML, exAss.ExportHTML());
 
                         }
 
