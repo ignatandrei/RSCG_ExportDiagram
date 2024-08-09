@@ -61,8 +61,10 @@ Get-Content $solution |
       #   File = $projectParts[2];
       #   Guid = $projectParts[3]
       # }
-      $fileProject =Join-Path  $folderSolution $projectParts[2]
-      Write-Host $fileProject
-      ProcessCsproj -project $fileProject -folderOutput $folderSolution
+      if ($projectParts[2] -match '.csproj$'){	
+        $fileProject =Join-Path  $folderSolution $projectParts[2]
+        Write-Host $fileProject
+        ProcessCsproj -project $fileProject -folderOutput $folderSolution
+      }
     }
 

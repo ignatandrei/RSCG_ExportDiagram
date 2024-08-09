@@ -1,5 +1,6 @@
 # RSCG_ExportDiagram
-export diagram for external relations for a csproj   
+
+export diagram for external relations for a csproj  with other csproj
 
 ## Install
 
@@ -34,7 +35,7 @@ function ProcessCsproj {
       [string]$folderOutput
   )
 
-$version = "2024.808.2104"
+$version = "2024.805.1823"
 #$folderOutput= ".."
 $newNode = [xml]@"
 <MainData>
@@ -91,11 +92,12 @@ Get-Content $solution |
       #   File = $projectParts[2];
       #   Guid = $projectParts[3]
       # }
-      $fileProject =Join-Path  $folderSolution $projectParts[2]
-      Write-Host $fileProject
-      ProcessCsproj -project $fileProject -folderOutput $folderSolution
+      if ($projectParts[2] -match '.csproj$'){	
+        $fileProject =Join-Path  $folderSolution $projectParts[2]
+        Write-Host $fileProject
+        ProcessCsproj -project $fileProject -folderOutput $folderSolution
+      }
     }
-
 
 
 ```
