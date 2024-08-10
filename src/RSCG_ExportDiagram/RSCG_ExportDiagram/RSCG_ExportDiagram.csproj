@@ -20,6 +20,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<None Remove="bin\Debug\netstandard2.0\\RSCG_ExportDiagram.dll" />
+		<None Remove="Templates\RSCG_ExportDiagramPowershell.cshtml" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 
 	</ItemGroup>
@@ -84,6 +85,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <RazorBlade Remove="Templates\RSCG_ExportDiagramPowershell.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="Templates\RSCG_ExportDiagramPowershell.cshtml" />
 	  <AdditionalFiles Include="Templates\DisplayVisJS.cshtml" />
 	  <AdditionalFiles Include="Templates\DisplayMarkdownWithMermaid.cshtml" />
 	</ItemGroup>
