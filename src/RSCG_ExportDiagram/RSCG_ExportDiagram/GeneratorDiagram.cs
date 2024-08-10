@@ -236,6 +236,14 @@ namespace RSCG_ExportDiagram
                 var projDir = csprojDecl.First(it => it.Key == CsprojDecl.projectDir).Value;
                 var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
                 var fullNameProject = Path.Combine(projDir, nameProject + ".csproj");
+                if (!File.Exists(fullNameProject))
+                {
+                    var file = Directory.GetFiles(projDir, "*.csproj");
+                    if(file.Length == 1)
+                    {
+                        fullNameProject = file[0];
+                    }
+                }
                 var refProjects = NameReferencesProject(fullNameProject);
                 refProjects = refProjects.Select(it => it.Replace(".csproj","")).ToArray();
 
