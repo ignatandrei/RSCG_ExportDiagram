@@ -9,7 +9,7 @@ Add to the csproj
 ```xml
 
 <ItemGroup>
-<PackageReference Include="RSCG_ExportDiagram" Version="2024.809.722" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
+<PackageReference Include="RSCG_ExportDiagram" Version="2024.810.832" OutputItemType="Analyzer" ReferenceOutputAssembly="false"   />
 </ItemGroup>
 <ItemGroup>
 	<CompilerVisibleProperty Include="RSCG_ExportDiagram_OutputFolder" />
@@ -35,7 +35,7 @@ function ProcessCsproj {
       [string]$folderOutput
   )
 
-$version = "2024.809.722"
+$version = "2024.810.832"
 #$folderOutput= ".."
 $newNode = [xml]@"
 <MainData>
