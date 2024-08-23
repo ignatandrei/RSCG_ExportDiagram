@@ -9,6 +9,10 @@ public class Person : IPerson, IDebug
         FirstName = "";
         LastName = "";
     }    
+    private string Test()
+    {
+        return "";
+    }
     public string FirstName { get; set; }
     public string LastName { get; set; }
     int IPerson.Age { get ; set ; }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -22,8 +23,8 @@ namespace RSCG_ExportDiagram
     {
         private bool IsFromAnotherAssembly(ITypeSymbol typeSymbol, IAssemblySymbol containingAssembly)
         {
-            var ret= !SymbolEqualityComparer.Default.Equals(typeSymbol.ContainingAssembly, containingAssembly);
-            var ass=typeSymbol.ContainingAssembly;
+            var ret = !SymbolEqualityComparer.Default.Equals(typeSymbol.ContainingAssembly, containingAssembly);
+            var ass = typeSymbol.ContainingAssembly;
             return ret;
         }
         private string[] NameReferencesProject(string csprojPath)
@@ -33,30 +34,30 @@ namespace RSCG_ExportDiagram
 
             var projectReferences = csproj.Descendants("ProjectReference")
                                           .Select(pr => pr.Attribute("Include")?.Value)
-                                          .Where(include => !string.IsNullOrEmpty(include))  
-                                          .Select(it=>it!)
-                                          .ToArray()??[];
+                                          .Where(include => !string.IsNullOrEmpty(include))
+                                          .Select(it => it!)
+                                          .ToArray() ?? [];
 
             projectReferences = projectReferences
                 .Select(it => it.Split('\\', '/'))
                 .Select(it => it.Last())
                 .ToArray();
 
-            
-            return projectReferences ;
-        }
-        
 
-    
-    private bool ShouldNotConsider(ISymbol typeSymbol)
+            return projectReferences;
+        }
+
+
+
+        private bool ShouldNotConsider(ISymbol typeSymbol)
         {
-            if(typeSymbol is IFieldSymbol field)
+            if (typeSymbol is IFieldSymbol field)
             {
                 typeSymbol = field.ContainingType;
             }
-            if(typeSymbol is IMethodSymbol methodSymbol)
+            if (typeSymbol is IMethodSymbol methodSymbol)
             {
-                if(methodSymbol.MethodKind == MethodKind.BuiltinOperator)
+                if (methodSymbol.MethodKind == MethodKind.BuiltinOperator)
                     return true;
                 typeSymbol = methodSymbol.ContainingType;
             }
@@ -104,7 +105,7 @@ namespace RSCG_ExportDiagram
                 "Object",
                 "string",
             };
-            var res=
+            var res =
                 baseTypes.Contains(typeSymbol.ToDisplayString())
                 ||
                 baseTypes.Contains(typeSymbol.Name)
@@ -115,7 +116,7 @@ namespace RSCG_ExportDiagram
         private T IsImplementationOfInterfaceMethod<T>(T methodSymbol)
             where T : ISymbol
         {
-            
+
             var containingType = methodSymbol.ContainingType;
             foreach (var interfaceType in containingType.AllInterfaces)
             {
@@ -155,17 +156,17 @@ namespace RSCG_ExportDiagram
                 var referencedSymbol = symbolInfo.Symbol;
                 if (referencedSymbol == null)
                     continue;
-                if(referencedSymbol is ITypeSymbol typeSymbol)
+                if (referencedSymbol is ITypeSymbol typeSymbol)
                 {
                     if (!ShouldNotConsider(typeSymbol))
                     {
-                        if(IsFromAnotherAssembly(typeSymbol, currentAssembly))
+                        if (IsFromAnotherAssembly(typeSymbol, currentAssembly))
                         {
                             references.Add(referencedSymbol);
                             continue;
                         }
                     }
-                        
+
                 }
                 else if (!SymbolEqualityComparer.Default.Equals(referencedSymbol.ContainingAssembly, currentAssembly))
                 {
@@ -182,9 +183,9 @@ namespace RSCG_ExportDiagram
             var dataFromCsproj = cnt.AnalyzerConfigOptionsProvider.SelectMany(
                 (it, _) =>
                 {
-                    Dictionary<CsprojDecl, string> map = new ();
-                    
-                    if(it.GlobalOptions.TryGetValue("build_property.RSCG_ExportDiagram_OutputFolder", out var value))
+                    Dictionary<CsprojDecl, string> map = new();
+
+                    if (it.GlobalOptions.TryGetValue("build_property.RSCG_ExportDiagram_OutputFolder", out var value))
                     {
                         map.Add(CsprojDecl.JSONFolder, value);
                     }
@@ -202,169 +203,282 @@ namespace RSCG_ExportDiagram
                         map.Add(CsprojDecl.excludeData, value3);
                     }
                     return map.ToArray();
-                    
+
                 }
-                ).Collect(); 
+                ).Collect();
             ;
             var assemblyNameProv = cnt.CompilationProvider
-            .Select((compilation, _) => {
+            .Select((compilation, _) =>
+            {
 
                 return compilation.AssemblyName;
-                })
+            })
             ;
-            
-            var classToImplementProv = 
+
+            var classToImplementProv =
                 cnt.SyntaxProvider.CreateSyntaxProvider(
                 predicate: (node, _) => node is BaseTypeDeclarationSyntax,
-                transform: (context, _) => 
-                    (context.SemanticModel ,context.SemanticModel.GetDeclaredSymbol(context.Node)))
+                transform: (context, _) =>
+                    (context.SemanticModel, context.SemanticModel.GetDeclaredSymbol(context.Node)))
             .Collect();
 
             var data =
                 assemblyNameProv
                 .Combine(classToImplementProv)
                 .Combine(dataFromCsproj);
-                
-                ;
+
+            ;
             cnt.RegisterSourceOutput(data, (context, AllData) =>
             {
-                var (compound, csprojDecl) = AllData;
-                var (assemblyName, classToImplement) = compound;
-                var additionalExport = csprojDecl.ToArray().Distinct().ToArray();
-                List<ExternalReferencesType> externalReferencesTypes = [];
+                GenerateExternalReferences(context, AllData);
+            });
+            //generating public classes with public methods
 
+            var publicClasses =
+    cnt.SyntaxProvider.CreateSyntaxProvider(
+    predicate: (node, _) =>
+    {
+        if (!(node is BaseTypeDeclarationSyntax baseTypeDeclarationSyntax))
+            return false;
+        if (baseTypeDeclarationSyntax.Modifiers.Count == 0)
+            return false;
+        if (baseTypeDeclarationSyntax.Modifiers.Any(it => it.IsKind(SyntaxKind.PublicKeyword)))
+            return true;
+        return false;
+    },
+    transform: (context, _) =>
+        (context.SemanticModel, 
+        context.SemanticModel.GetDeclaredSymbol(context.Node),
+        context.Node as BaseTypeDeclarationSyntax
+        ))
+    .Collect()
+    ;
+
+            var publicClassesWithData =
+                        publicClasses
+                        .Combine(dataFromCsproj);
+            ;
+            cnt.RegisterSourceOutput(publicClassesWithData, (context,allData) =>
+            {
+                GenerateForPublicClasses(context, allData);
+            });
+        }
+
+        private void GenerateForPublicClasses(SourceProductionContext context, (System.Collections.Immutable.ImmutableArray<(SemanticModel SemanticModel, ISymbol?, BaseTypeDeclarationSyntax?)> Left, System.Collections.Immutable.ImmutableArray<KeyValuePair<CsprojDecl, string>> Right) allData)
+        {
+           var (compound, csprojDecl) = allData;
+            var arr = compound.ToArray();
+            var additionalExport = csprojDecl.ToArray().Distinct().ToArray();
+            List<ExportPublicClass> exportPublicClasses = [];
+            foreach (var (sm, item,node) in arr)
+            {
+                if (!(item is INamedTypeSymbol namedTypeSymbol))
+                    continue;
+                
+                var members = namedTypeSymbol
+                    .GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Where(it =>
+                    {
+                        if (!(it.DeclaredAccessibility == Accessibility.Public))
+                            return false;
+                        if (it.MethodKind == MethodKind.PropertyGet)
+                            return false;
+                        if (it.MethodKind == MethodKind.PropertySet)
+                            return false;
+                        if(it.MethodKind == MethodKind.Constructor)
+                            return false;
+                        if(!(it.MethodKind == MethodKind.Ordinary))
+                            return false;
+                        //if(it.Locations.All(loc=>loc.IsInSource))
+                        //    return false;
+                        if(it.Locations.Length == 0)
+                            return false;
+                        if(it.Locations.Any(loc=> loc.IsInSource))
+                            return true;
+
+                        return false;
+                    })
+                    .ToArray();
+                if (members.Length == 0) continue;
+                exportPublicClasses.Add(new ExportPublicClass()
+                {
+                    Name = namedTypeSymbol.Name,
+                    PublicMethods = members.Select(it => 
+                    new MethodPublic() { 
+                        MethodName = it.Name }).ToArray()
+                });
+
+
+            }
+            if (exportPublicClasses.Count > 0)
+            {
                 var projDir = csprojDecl.First(it => it.Key == CsprojDecl.projectDir).Value;
                 var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
-                var fullNameProject = Path.Combine(projDir, nameProject + ".csproj");
-                if (!File.Exists(fullNameProject))
-                {
-                    var file = Directory.GetFiles(projDir, "*.csproj");
-                    if(file.Length == 1)
-                    {
-                        fullNameProject = file[0];
-                    }
-                }
-                var refProjects = NameReferencesProject(fullNameProject);
-                refProjects = refProjects.Select(it => it.Replace(".csproj","")).ToArray();
 
-                foreach (var(sm, item) in classToImplement)
+                var folder = csprojDecl
+.Where(it => it.Key == CsprojDecl.JSONFolder).ToArray();
+                if (folder.Length == 1)
                 {
-                    
-                    if (!(item is INamedTypeSymbol namedTypeSymbol))
+                    var path = folder[0].Value;
+                    if (!Path.IsPathRooted(path))
+                    {
+                        path = Path.Combine(projDir, path);
+                    }
+                    var fileNameJSON = Path.Combine(path, nameProject + "_public_csproj.json");
+                    try
+                    {
+                        File.WriteAllText(fileNameJSON,
+                        JsonSerializer.Serialize(exportPublicClasses, new JsonSerializerOptions { WriteIndented = true })
+                            );
+                    }
+                    catch (Exception ex)
+                    {
+
+                        //do nothing
+                    }
+
+                }
+            }
+        }
+
+        private void GenerateExternalReferences(SourceProductionContext context, ((string? Left, System.Collections.Immutable.ImmutableArray<(SemanticModel SemanticModel, ISymbol?)> Right) Left, System.Collections.Immutable.ImmutableArray<KeyValuePair<CsprojDecl, string>> Right) AllData)
+        {
+            var (compound, csprojDecl) = AllData;
+            var (assemblyName, classToImplement) = compound;
+            var additionalExport = csprojDecl.ToArray().Distinct().ToArray();
+            List<ExternalReferencesType> externalReferencesTypes = [];
+
+            var projDir = csprojDecl.First(it => it.Key == CsprojDecl.projectDir).Value;
+            var nameProject = csprojDecl.First(it => it.Key == CsprojDecl.projectName).Value;
+            var fullNameProject = Path.Combine(projDir, nameProject + ".csproj");
+            if (!File.Exists(fullNameProject))
+            {
+                var file = Directory.GetFiles(projDir, "*.csproj");
+                if (file.Length == 1)
+                {
+                    fullNameProject = file[0];
+                }
+            }
+            var refProjects = NameReferencesProject(fullNameProject);
+            refProjects = refProjects.Select(it => it.Replace(".csproj", "")).ToArray();
+
+            foreach (var (sm, item) in classToImplement)
+            {
+
+                if (!(item is INamedTypeSymbol namedTypeSymbol))
+                    continue;
+
+                var members = namedTypeSymbol.GetMembers();
+                var currentAssembly = namedTypeSymbol.ContainingAssembly;
+                List<ExternalReferencesForMethod> referencesMethod = [];
+                foreach (var member in members)
+                {
+                    if (member is IPropertySymbol propertySymbol)
+                    {
+                        // for the moment, no property
                         continue;
-
-                    var members = namedTypeSymbol.GetMembers();
-                    var currentAssembly = namedTypeSymbol.ContainingAssembly;
-                    List<ExternalReferencesForMethod> referencesMethod = [];
-                    foreach (var member in members)
+                        //VerifyProperty(currentAssembly, propertySymbol);
+                    }
+                    else if (member is IMethodSymbol methodSymbol)
                     {
-                        if (member is IPropertySymbol propertySymbol)
-                        {
-                            // for the moment, no property
+                        if (methodSymbol.IsImplicitlyDeclared)
                             continue;
-                            //VerifyProperty(currentAssembly, propertySymbol);
-                        }
-                        else if (member is IMethodSymbol methodSymbol)
+                        var props = VerifyMethod(sm, currentAssembly, methodSymbol);
+                        if (props?.Length > 0)
                         {
-                            if(methodSymbol.IsImplicitlyDeclared)
-                                continue;
-                            var props = VerifyMethod(sm, currentAssembly, methodSymbol);
-                            if (props?.Length > 0)
-                            {
-                                props = props
-                                .Where(it=>it.ContainingAssembly != null)
-                                .Where(it => refProjects.Contains(it.ContainingAssembly.Name))
-                                .ToArray();
-                                //foreach(var prop in props)
-                                //{
-                                //    var x= prop.ContainingAssembly.Name.ToString();
-                                //    bool isProject = refProjects.Contains(x);
-                                //    isProject=!isProject;
-                                //}   
-                                referencesMethod.Add(new ExternalReferencesForMethod(methodSymbol, props));
-                            }
+                            props = props
+                            .Where(it => it.ContainingAssembly != null)
+                            .Where(it => refProjects.Contains(it.ContainingAssembly.Name))
+                            .ToArray();
+                            //foreach(var prop in props)
+                            //{
+                            //    var x= prop.ContainingAssembly.Name.ToString();
+                            //    bool isProject = refProjects.Contains(x);
+                            //    isProject=!isProject;
+                            //}   
+                            referencesMethod.Add(new ExternalReferencesForMethod(methodSymbol, props));
                         }
-
                     }
-                    //create references
-                    if (referencesMethod.Count > 0)
+
+                }
+                //create references
+                if (referencesMethod.Count > 0)
+                {
+                    ExternalReferencesType externalReferencesType = new(namedTypeSymbol);
+                    externalReferencesType.externalReferencesMethod = referencesMethod.ToArray();
+                    externalReferencesTypes.Add(externalReferencesType);
+                }
+
+
+            }
+            string[] excludeArr = [];
+            var strExc = csprojDecl
+            .Where(it => it.Key == CsprojDecl.excludeData)
+            .ToArray();
+            if (strExc.Length == 1)
+            {
+                excludeArr = strExc[0].Value.Split(',');
+                excludeArr ??= [];
+            }
+
+            if (externalReferencesTypes.Count > 0)
+            {
+                var nr = 0;
+                foreach (var item in externalReferencesTypes)
+                {
+                    nr++;
+                    GenerateText generateText = new(item, nr, additionalExport);
+                    var name = item.classType.ContainingAssembly.Name + "." + item.classType.Name;
+                    name = name.Replace(".", "_") + "_" + nr;
+                    var text = generateText.GenerateClass();
+                    context.AddSource($"{name}_gen.cs", text);
+
+                }
+                var folder = csprojDecl
+.Where(it => it.Key == CsprojDecl.JSONFolder).ToArray();
+                if (folder.Length == 1)
+                {
+                    var path = folder[0].Value;
+                    if (!Path.IsPathRooted(path))
                     {
-                        ExternalReferencesType externalReferencesType = new(namedTypeSymbol);
-                        externalReferencesType.externalReferencesMethod= referencesMethod.ToArray();
-                        externalReferencesTypes.Add(externalReferencesType);
+                        path = Path.Combine(projDir, path);
                     }
-                    
-
-                }
-                string[] excludeArr = [];
-                var strExc = csprojDecl
-                .Where(it => it.Key == CsprojDecl.excludeData)
-                .ToArray();
-                if (strExc.Length == 1)
-                {
-                    excludeArr = strExc[0].Value.Split(',');
-                    excludeArr ??= [];
-                }
-
-                if (externalReferencesTypes.Count > 0)
-                {
-                    var nr=0;
+                    var fileNameJSON = Path.Combine(path, nameProject + "_rel_csproj.json");
+                    var fileNameMermaid = Path.Combine(path, nameProject + "_rel_csproj.md");
+                    var fileNameHTML = Path.Combine(path, nameProject + "_rel_csproj.html");
+                    List<ExportClass> exportClasses = new();
+                    nr = 0;
                     foreach (var item in externalReferencesTypes)
                     {
                         nr++;
-                        GenerateText generateText = new(item,nr, additionalExport);
-                        var name = item.classType.ContainingAssembly.Name + "." + item.classType.Name;
-                        name=name.Replace(".", "_")+"_"+nr;
-                        var text = generateText.GenerateClass();
-                        context.AddSource($"{name}_gen.cs", text);
-
+                        GenerateText generateText = new(item, nr, additionalExport);
+                        var Json = generateText.GenerateObjectsToExport(excludeArr);
+                        if (Json != null) exportClasses.Add(Json);
                     }
-                    var folder = csprojDecl
-    .Where(it => it.Key == CsprojDecl.JSONFolder).ToArray();
-                    if (folder.Length == 1)
+                    if (exportClasses.Count > 0)
                     {
-                        var path = folder[0].Value;
-                        if (!Path.IsPathRooted(path))
+                        JsonSerializerOptions options = new()
                         {
-                            path = Path.Combine(projDir, path);
-                        }
-                        var fileNameJSON = Path.Combine(path, nameProject + "_rel_csproj.json");
-                        var fileNameMermaid = Path.Combine(path, nameProject + "_rel_csproj.md");
-                        var fileNameHTML = Path.Combine(path, nameProject + "_rel_csproj.html");
-                        List<ExportClass> exportClasses = new ();
-                        nr=0;
-                        foreach (var item in externalReferencesTypes)
-                        {
-                            nr++;
-                            GenerateText generateText = new(item, nr, additionalExport);
-                            var Json = generateText.GenerateObjectsToExport(excludeArr);
-                            if(Json != null) exportClasses.Add(Json);
-                        }
-                        if (exportClasses.Count > 0)
-                        {
-                            JsonSerializerOptions options = new()
-                            {
-                                WriteIndented = true
-                            };
-                            ExportAssembly exAss =new();
-                            exAss.AssemblyName = assemblyName??"";
-                            exAss.ClassesWithExternalReferences = 
-                                exportClasses
-                                .Distinct(new Eq<ExportClass>((x, y) => x.ClassName == y.ClassName))
-                                .OrderBy(it => it.ClassName)
-                                .ToArray();
-                            File.WriteAllText(fileNameJSON, exAss.ExportJSON());
-                            File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
-                            //File.WriteAllText(fileNameHTML, exAss.ExportHTML());
-
-                        }
+                            WriteIndented = true
+                        };
+                        ExportAssembly exAss = new();
+                        exAss.AssemblyName = assemblyName ?? "";
+                        exAss.ClassesWithExternalReferences =
+                            exportClasses
+                            .Distinct(new Eq<ExportClass>((x, y) => x.ClassName == y.ClassName))
+                            .OrderBy(it => it.ClassName)
+                            .ToArray();
+                        File.WriteAllText(fileNameJSON, exAss.ExportJSON());
+                        File.WriteAllText(fileNameMermaid, exAss.ExportMermaid());
+                        //File.WriteAllText(fileNameHTML, exAss.ExportHTML());
 
                     }
-
 
                 }
-            });
-            
+
+
+            }
         }
 
         private ISymbol[] VerifyMethod(SemanticModel sm, IAssemblySymbol currentAssembly, IMethodSymbol methodSymbol)
@@ -410,12 +524,12 @@ namespace RSCG_ExportDiagram
             var otherass = (MethodBodyReferencesOtherAssembly(methodSymbol, sm, currentAssembly));
             if (otherass.Length > 0)
             {
-                otherass= otherass.Where(it =>!ShouldNotConsider(it)).ToArray();
-                if(otherass.Length>0)ret.AddRange(otherass);
+                otherass = otherass.Where(it => !ShouldNotConsider(it)).ToArray();
+                if (otherass.Length > 0) ret.AddRange(otherass);
             }
             return ret.ToArray();
-            
-            
+
+
         }
 
         private void VerifyProperty(IAssemblySymbol currentAssembly, IPropertySymbol propertySymbol)
