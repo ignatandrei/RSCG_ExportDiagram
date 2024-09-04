@@ -296,7 +296,6 @@ namespace RSCG_ExportDiagram
                             return false;
                         if(it.Locations.Any(loc=> loc.IsInSource))
                             return true;
-
                         return false;
                     })
                     .ToArray();
@@ -304,9 +303,13 @@ namespace RSCG_ExportDiagram
                 exportPublicClasses.Add(new ExportPublicClass()
                 {
                     Name = namedTypeSymbol.Name,
+                    LinesOfCode = GetLinesOfCodeWithoutComments(node),
                     PublicMethods = members.Select(it => 
                     new MethodPublic() { 
-                        MethodName = it.Name }).ToArray()
+                        MethodName = it.Name,
+                        LinesOfCode = GetMethodLinesOfCodeWithoutComments(it)
+
+                    }).ToArray()
                 });
 
 
@@ -341,7 +344,45 @@ namespace RSCG_ExportDiagram
                 }
             }
         }
+        static int GetMethodLinesOfCodeWithoutComments(IMethodSymbol methodSymbol)
+        {
+            var methodSyntax = methodSymbol.DeclaringSyntaxReferences
+                    .Select(it=>it.GetSyntax())
+                    .Where(it => it is BaseMethodDeclarationSyntax)
+                    .FirstOrDefault() as BaseMethodDeclarationSyntax;
+            if (methodSyntax == null)
+            {
+                return 0;
+            }
 
+            return GetLinesOfCodeWithoutComments(methodSyntax);
+        }
+        static int GetLinesOfCodeWithoutComments(SyntaxNode? node)
+        {
+            if (node == null)
+            {
+                return 0;
+            }
+
+            var textLines = node.GetText().Lines;
+
+            var totalLines = textLines
+                .Where(it => it.Start != it.End)
+                .Where(it=>it.Text != null)
+                .Where(it=>it.Text!.Length >0)                
+                .Count();
+
+            // Identify comment lines
+            var commentLines = node.DescendantTrivia()
+                .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
+                                 trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+                .SelectMany(trivia => trivia.ToFullString().Split('\n'))
+                .Count();
+
+            // Calculate lines of code without comments
+            var linesOfCodeWithoutComments = totalLines - commentLines;
+            return linesOfCodeWithoutComments;
+        }
         private void GenerateExternalReferences(SourceProductionContext context, ((string? Left, System.Collections.Immutable.ImmutableArray<(SemanticModel SemanticModel, ISymbol?)> Right) Left, System.Collections.Immutable.ImmutableArray<KeyValuePair<CsprojDecl, string>> Right) AllData)
         {
             var (compound, csprojDecl) = AllData;

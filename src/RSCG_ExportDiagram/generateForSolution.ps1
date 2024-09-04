@@ -4,7 +4,7 @@ function ProcessCsproj {
       [string]$folderOutput
   )
 
-$version = "2024.823.2200"
+$version = "2024.904.427"
 #$folderOutput= ".."
 $newNode = [xml]@"
 <MainData>

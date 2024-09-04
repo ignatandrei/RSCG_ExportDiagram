@@ -10,7 +10,7 @@ internal record Child : IPerson
 
     string IPerson.FullName()
     {
-        return "Child"+(this as IPerson).FirstName;
+        return "Child" +(this as IPerson).FirstName;
     }
     string Test()
     {

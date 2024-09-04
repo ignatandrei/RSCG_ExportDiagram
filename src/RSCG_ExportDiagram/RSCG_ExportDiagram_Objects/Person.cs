@@ -20,6 +20,7 @@ public class Person : IPerson, IDebug
     public string FullName() => $"{FirstName} {LastName}";
     public void WriteToFile(string nameFile)
     {
+        //this is a comment
         File.WriteAllText(nameFile, FullName());
     }
     public void DebugData()
